@@ -9,11 +9,19 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.15)
     cmake_policy(SET CMP0092 NEW) # Enables clean /W4 override for MSVC
 endif()
 
-project(meshoptimizer VERSION 0.14 LANGUAGES CXX)
+include(cmake/HunterGate.cmake)
+HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.275.tar.gz"
+    SHA1 "0952a54dc983ecbea09dfe8c53ee65d1e0e91232"
+)
+
+project(meshoptimizer VERSION 0.14)
 
 option(MESHOPT_BUILD_DEMO "Build demo" OFF)
 option(MESHOPT_BUILD_GLTFPACK "Build gltfpack" OFF)
 option(MESHOPT_BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+include(extern/packages.cmake)
 
 # add_library() needs BUILD_SHARED_LIBS set to decide between static and
 # shared. This also sets it back to OFF in case parent project has
@@ -79,13 +87,19 @@ endif()
 set(TARGETS meshoptimizer)
 
 if(MESHOPT_BUILD_DEMO)
-    add_executable(demo demo/main.cpp demo/miniz.cpp demo/tests.cpp tools/meshloader.cpp)
+    add_executable(demo demo/main.cpp demo/miniz.cpp demo/tests.cpp)
     target_link_libraries(demo meshoptimizer)
 endif()
 
 if(MESHOPT_BUILD_GLTFPACK)
-    add_executable(gltfpack ${GLTF_SOURCES} tools/meshloader.cpp)
-    target_link_libraries(gltfpack meshoptimizer)
+    add_executable(gltfpack ${GLTF_SOURCES})
+    target_link_libraries(gltfpack PUBLIC
+        meshoptimizer
+        Khronos::KhronosDataFormat
+        cgltf::cgltf
+        basis_universal::basisu_encoder
+        fast_obj::fast_obj
+    )
     list(APPEND TARGETS gltfpack)
 
     if(MESHOPT_BUILD_SHARED_LIBS)
