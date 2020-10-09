@@ -319,7 +319,11 @@ std::string basisToKtx(const std::string& data, bool srgb, bool uastc)
 		Ktx2LevelIndex le = {};
 		le.byteOffset = file_offset;
 		le.byteLength = ktx.size() - file_offset;
-		le.uncompressedByteLength = basis ? 0 : slice.m_file_size;
+		if (basis) {
+			le.uncompressedByteLength = 0;
+		} else {
+			le.uncompressedByteLength = slice.m_file_size;
+		}
 
 		write(ktx, ktx_level_offset + level_index * sizeof(Ktx2LevelIndex), le);
 

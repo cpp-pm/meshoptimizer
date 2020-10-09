@@ -63,11 +63,11 @@ set(GLTF_SOURCES
     gltf/write.cpp
 )
 
-if(MSVC)
-    add_compile_options(/W4 /WX)
-else()
-    add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-field-initializers -Werror)
-endif()
+#if(MSVC)
+#    add_compile_options(/W4 /WX)
+#else()
+#    add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-field-initializers -Werror)
+#endif()
 
 add_library(meshoptimizer ${SOURCES})
 target_include_directories(meshoptimizer INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>")
@@ -87,20 +87,28 @@ endif()
 set(TARGETS meshoptimizer)
 
 if(MESHOPT_BUILD_DEMO)
-    add_executable(demo demo/main.cpp demo/miniz.cpp demo/tests.cpp)
-    target_link_libraries(demo meshoptimizer)
+    add_executable(demo demo/main.cpp demo/tests.cpp)
+    target_link_libraries(demo PRIVATE
+        meshoptimizer
+        miniz::miniz
+        fast_obj::fast_obj
+    )
+    list(APPEND TARGETS demo)
 endif()
 
 if(MESHOPT_BUILD_GLTFPACK)
-    add_executable(gltfpack ${GLTF_SOURCES})
-    target_link_libraries(gltfpack PUBLIC
+    add_library(libgltfpack ${GLTF_SOURCES})
+    target_link_libraries(libgltfpack PUBLIC
         meshoptimizer
         Khronos::KhronosDataFormat
         cgltf::cgltf
         basis_universal::basisu_encoder
         fast_obj::fast_obj
     )
-    list(APPEND TARGETS gltfpack)
+
+    add_executable(gltfpack tools/gltfpack.cpp)
+    target_link_libraries(gltfpack PRIVATE libgltfpack)
+    list(APPEND TARGETS gltfpack libgltfpack)
 
     if(MESHOPT_BUILD_SHARED_LIBS)
         string(CONCAT RPATH "$ORIGIN/../" ${CMAKE_INSTALL_LIBDIR})
@@ -112,11 +120,12 @@ include(GNUInstallDirs)
 
 install(TARGETS ${TARGETS} EXPORT meshoptimizerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(FILES src/meshoptimizer.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES src/meshoptimizer.h gltf/gltfpack.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
 install(EXPORT meshoptimizerTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/meshoptimizer NAMESPACE meshoptimizer::)
 
 # TARGET_PDB_FILE is available since 3.1

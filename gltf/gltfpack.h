@@ -229,6 +229,8 @@ struct TempFile
 	~TempFile();
 };
 
+std::string getVersion();
+
 std::string getFullPath(const char* path, const char* base_path);
 std::string getFileName(const char* path);
 bool readFile(const char* path, std::string& data);
@@ -309,6 +311,8 @@ void writeLight(std::string& json, const cgltf_light& light);
 void writeArray(std::string& json, const char* name, const std::string& contents);
 void writeExtensions(std::string& json, const ExtensionInfo* extensions, size_t count);
 void writeExtras(std::string& json, const std::string& data, const cgltf_extras& extras);
+
+int gltfpack(const char* input, const char* output, const char* report, Settings settings);
 
 /**
  * Copyright (c) 2016-2020 Arseny Kapoulkine
