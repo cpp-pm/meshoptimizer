@@ -11,7 +11,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../extern/cgltf.h"
+#include <cgltf/cgltf.h>
 
 #include <assert.h>
 
@@ -345,6 +345,12 @@ void writeArray(std::string& json, const char* name, const std::string& contents
 void writeExtensions(std::string& json, const ExtensionInfo* extensions, size_t count);
 void writeExtras(std::string& json, const std::string& data, const cgltf_extras& extras);
 void writeScene(std::string& json, const cgltf_scene& scene, const std::string& roots);
+
+std::string getVersion();
+Settings defaults();
+unsigned int textureMask(const char* arg);
+
+int gltfpack(const char* input, const char* output, const char* report, Settings settings);
 
 /**
  * Copyright (c) 2016-2021 Arseny Kapoulkine

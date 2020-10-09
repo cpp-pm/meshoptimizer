@@ -3,7 +3,7 @@
 #endif
 
 #define CGLTF_IMPLEMENTATION
-#include "../extern/cgltf.h"
+#include <cgltf/cgltf.h>
 
 #define FAST_OBJ_IMPLEMENTATION
-#include "../extern/fast_obj.h"
+#include <fast_obj/fast_obj.h>

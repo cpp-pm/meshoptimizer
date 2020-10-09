@@ -8,10 +8,10 @@
 
 #include <vector>
 
-#include "../extern/fast_obj.h"
+#include <fast_obj/fast_obj.h>
 
 #define SDEFL_IMPLEMENTATION
-#include "../extern/sdefl.h"
+#include <sdefl.h>
 
 // This file uses assert() to verify algorithm correctness
 #undef NDEBUG

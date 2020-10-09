@@ -11,11 +11,19 @@ if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW) # Enables clean /W4 override for MSVC
 endif()
 
-project(meshoptimizer VERSION 0.16 LANGUAGES CXX)
+include(cmake/HunterGate.cmake)
+HunterGate(
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.309.tar.gz"
+    SHA1 "15e84e1f23eb079360db727d373dab82890420b7"
+)
+
+project(meshoptimizer VERSION 0.16)
 
 option(MESHOPT_BUILD_DEMO "Build demo" OFF)
 option(MESHOPT_BUILD_GLTFPACK "Build gltfpack" OFF)
 option(MESHOPT_BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
+include(extern/packages.cmake)
 
 set(SOURCES
     src/meshoptimizer.h
@@ -51,11 +59,11 @@ set(GLTF_SOURCES
     gltf/write.cpp
 )
 
-if(MSVC)
-    add_compile_options(/W4 /WX)
-else()
-    add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-field-initializers -Werror)
-endif()
+#if(MSVC)
+#    add_compile_options(/W4 /WX)
+#else()
+#    add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-field-initializers -Werror)
+#endif()
 
 if(MESHOPT_BUILD_SHARED_LIBS)
     add_library(meshoptimizer SHARED ${SOURCES})
@@ -81,30 +89,47 @@ set(TARGETS meshoptimizer)
 
 if(MESHOPT_BUILD_DEMO)
     add_executable(demo demo/main.cpp demo/tests.cpp tools/meshloader.cpp)
-    target_link_libraries(demo meshoptimizer)
+    target_link_libraries(demo PRIVATE
+        meshoptimizer
+        vurtun::lib
+        fast_obj::fast_obj
+    )
+    list(APPEND TARGETS demo)
 endif()
 
 if(MESHOPT_BUILD_GLTFPACK)
-    add_executable(gltfpack ${GLTF_SOURCES} tools/meshloader.cpp)
-    set_target_properties(gltfpack PROPERTIES CXX_STANDARD 11)
-    target_link_libraries(gltfpack meshoptimizer)
-    list(APPEND TARGETS gltfpack)
+    add_library(libgltfpack ${GLTF_SOURCES})
+    # set_target_properties(libgltfpack PROPERTIES CXX_STANDARD 11)
+    target_link_libraries(libgltfpack PUBLIC
+        meshoptimizer
+        cgltf::cgltf
+        basis_universal::basisu_encoder
+        fast_obj::fast_obj
+    )
+
+    add_executable(gltfpack tools/gltfpack.cpp)
+    target_link_libraries(gltfpack PRIVATE libgltfpack)
+    list(APPEND TARGETS gltfpack libgltfpack)
 
     if(MESHOPT_BUILD_SHARED_LIBS)
         string(CONCAT RPATH "$ORIGIN/../" ${CMAKE_INSTALL_LIBDIR})
-        set_target_properties(gltfpack PROPERTIES INSTALL_RPATH ${RPATH})
+        set_target_properties(libgltfpack PROPERTIES INSTALL_RPATH ${RPATH})
     endif()
+
+    install(FILES gltf/gltfpack.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
 endif()
 
 include(GNUInstallDirs)
 
 install(TARGETS ${TARGETS} EXPORT meshoptimizerTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(FILES src/meshoptimizer.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES src/meshoptimizer.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
+
 install(EXPORT meshoptimizerTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/meshoptimizer NAMESPACE meshoptimizer::)
 
 # TARGET_PDB_FILE is available since 3.1

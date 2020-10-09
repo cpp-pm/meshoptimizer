@@ -1,4 +1,14 @@
 @PACKAGE_INIT@
 
+if("@MESHOPT_BUILD_GLTFPACK@")
+  find_package(cgltf CONFIG REQUIRED)
+  find_package(fast_obj CONFIG REQUIRED)
+  find_package(basis_universal CONFIG REQUIRED)
+endif()
+
+if("@MESHOPT_BUILD_DEMO@")
+  find_package(vurtun CONFIG REQUIRED)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/meshoptimizerTargets.cmake")
 check_required_components(meshoptimizer)
