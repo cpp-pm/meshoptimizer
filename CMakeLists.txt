@@ -115,8 +115,6 @@ if(MESHOPT_BUILD_GLTFPACK)
         string(CONCAT RPATH "$ORIGIN/../" ${CMAKE_INSTALL_LIBDIR})
         set_target_properties(libgltfpack PROPERTIES INSTALL_RPATH ${RPATH})
     endif()
-
-    install(FILES gltf/gltfpack.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
 endif()
 
 include(GNUInstallDirs)
@@ -129,6 +127,10 @@ install(TARGETS ${TARGETS} EXPORT meshoptimizerTargets
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(FILES src/meshoptimizer.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
+
+if(MESHOPT_BUILD_GLTFPACK)
+    install(FILES gltf/gltfpack.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/meshoptimizer)
+endif()
 
 install(EXPORT meshoptimizerTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/meshoptimizer NAMESPACE meshoptimizer::)
 
